@@ -1,9 +1,10 @@
 pragma solidity ^0.4.17;
 
 import 'zeppelin-solidity/contracts/crowdsale/Crowdsale.sol';
+import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 
-contract SonderICO is Crowdsale {
+contract SonderICO is Crowdsale, Ownable {
   uint256 public publicRate = 14286;
   uint256 public bonus1Rate = publicRate * 115 / 100;
   uint256 public bonus2Rate = publicRate * 110 / 100;
@@ -14,12 +15,25 @@ contract SonderICO is Crowdsale {
   uint256 public phase2EndDate;
   uint256 public phase3EndDate;
 
+  bool public isActive = true;
+
   function SonderICO(address _wallet, ERC20 _token, uint256 _startDate, uint256 _phase1EndDate, uint256 _phase2EndDate, uint256 _phase3EndDate)
     Crowdsale(bonus1Rate, _wallet, _token) {
       startDate = _startDate;
       phase1EndDate = _phase1EndDate;
       phase2EndDate = _phase2EndDate;
       phase3EndDate = _phase3EndDate;
+  }
+
+  modifier onlyWhileActive {
+    require(isActive);
+    require(now >= startDate);
+    _;
+  }
+
+  function finalize() external onlyOwner {
+    isActive = false;
+    token.transfer(owner, token.balanceOf(this));
   }
 
   function isValidRate() internal view returns (bool) {
@@ -37,9 +51,9 @@ contract SonderICO is Crowdsale {
     return 0;
   }
 
-  function _preValidatePurchase(address _beneficiary, uint256 _weiAmount) internal {
+  function _preValidatePurchase(address _beneficiary, uint256 _weiAmount) internal onlyWhileActive {
     super._preValidatePurchase(_beneficiary, _weiAmount);
-    require(now >= startDate);
+    //todo check if there's some tokens left
 
     if (!isValidRate()) {
       uint stage = currentStage();
