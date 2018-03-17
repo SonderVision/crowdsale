@@ -6,9 +6,9 @@ import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 
 contract SonderICO is Crowdsale, Ownable {
   uint256 public publicRate = 14286;
-  uint256 public bonus1Rate = publicRate * 115 / 100;
-  uint256 public bonus2Rate = publicRate * 110 / 100;
-  uint256 public bonus3Rate = publicRate * 105 / 100;
+  uint256[] rates = [publicRate * 115 / 100, publicRate * 110 / 100, publicRate * 105 / 100, publicRate];
+  uint[] minDeposit = [10000, 5000, 1000, 100];
+  uint stage = 0;
 
   uint256 public startDate;
   uint256 public phase1EndDate;
@@ -18,7 +18,7 @@ contract SonderICO is Crowdsale, Ownable {
   bool public isActive = true;
 
   function SonderICO(address _wallet, ERC20 _token, uint256 _startDate, uint256 _phase1EndDate, uint256 _phase2EndDate, uint256 _phase3EndDate)
-    Crowdsale(bonus1Rate, _wallet, _token) {
+    Crowdsale(rates[stage], _wallet, _token) {
       startDate = _startDate;
       phase1EndDate = _phase1EndDate;
       phase2EndDate = _phase2EndDate;
@@ -36,36 +36,24 @@ contract SonderICO is Crowdsale, Ownable {
     token.transfer(owner, token.balanceOf(this));
   }
 
-  function isValidRate() internal view returns (bool) {
-    if (now >= phase3EndDate) return rate == publicRate;
-    if (now >= phase2EndDate) return rate <= bonus3Rate;
-    if (now >= phase1EndDate) return rate <= bonus2Rate;
-    return true;
+  function getStageByTime() internal view returns (uint) {
+    if (now >= phase3EndDate) return 3;
+    if (now >= phase2EndDate) return 2;
+    if (now >= phase1EndDate) return 1;
+    return 0;
   }
 
-  function currentStage() public view returns (uint) {
-    if (now >= phase3EndDate) return 4;
-    if (now >= phase2EndDate) return 3;
-    if (now >= phase1EndDate) return 2;
-    if (now >= startDate) return 1;
-    return 0;
+  function setStage() internal {
+    uint currentStage = getStageByTime();
+    if (currentStage > stage) {
+      stage = currentStage;
+      rate = rates[stage];
+    }
   }
 
   function _preValidatePurchase(address _beneficiary, uint256 _weiAmount) internal onlyWhileActive {
     super._preValidatePurchase(_beneficiary, _weiAmount);
-    //todo check if there's some tokens left
-
-    if (!isValidRate()) {
-      uint stage = currentStage();
-      if (stage == 4) {
-        rate = publicRate;
-      } else if (stage == 3) {
-        rate = bonus3Rate;
-      } else if (stage == 2) {
-        rate = bonus2Rate;
-      } else if (stage == 1) {
-        rate = bonus1Rate;
-      }
-    }
+    setStage();
+    require(_weiAmount >= minDeposit[stage] * (10 ** 15));
   }
 }
