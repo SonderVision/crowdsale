@@ -51,6 +51,12 @@ contract SonderICO is Crowdsale, Ownable {
     }
   }
 
+  //fallback function in case we'll need to close bonus stage phase earlier
+  function manuallySetStage(uint _stage) external onlyOwner {
+    stage = _stage
+    rate = rates[stage]
+  }
+
   function _preValidatePurchase(address _beneficiary, uint256 _weiAmount) internal onlyWhileActive {
     super._preValidatePurchase(_beneficiary, _weiAmount);
     setStage();
