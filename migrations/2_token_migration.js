@@ -3,7 +3,7 @@ const SonderICO = artifacts.require("./SonderICO.sol");
 
 const wallet = '0xf17f52151EbEF6C7334FAD080c5704D77216b732';
 const icoTokenAmount = 240e6;
-const startDate = Date.parse('03/25/2018') / 1000; // 03/25
+const startDate = Date.parse('03/23/2018') / 1000; // 03/25
 const phase1EndDate = Date.parse('03/28/2018') / 1000; // 03/28
 const phase2EndDate = Date.parse('04/05/2018') / 1000; // 04/05
 const phase3EndDate = Date.parse('04/11/2018') / 1000; // 04/11
