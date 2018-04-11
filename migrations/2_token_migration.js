@@ -3,7 +3,7 @@ const SonderICO = artifacts.require("./SonderICO.sol");
 
 const wallet = '0xf17f52151EbEF6C7334FAD080c5704D77216b732';
 const icoTokenAmount = 240e6;
-const startDate = Date.parse('04/11/2018') / 1000; // 04/11
+const startDate = Date.parse('05/21/2018') / 1000; // 05/21
 
 module.exports = async function(deployer) {
   await deployer.deploy(SonderToken);
